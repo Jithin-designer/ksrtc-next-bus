@@ -7,7 +7,6 @@ export default function KSRTCNextBusApp() {
             id: "nilambur-to-kozhikode",
             from: "Nilambur",
             to: "Kozhikode",
-            standNote: "Unofficial sample timings based on the uploaded poster. Verify before travel.",
             times: [
                 "05:15", "05:50", "06:10", "06:35", "07:00", "08:40",
                 "11:10", "12:15", "13:10", "14:00", "14:30", "16:05"
@@ -17,7 +16,6 @@ export default function KSRTCNextBusApp() {
             id: "kozhikode-to-nilambur",
             from: "Kozhikode",
             to: "Nilambur",
-            standNote: "From Kozhikode (Palayam Stand). Unofficial sample timings based on the uploaded poster.",
             times: [
                 "08:10", "08:30", "09:00", "10:10", "11:20", "14:40",
                 "15:15", "15:40", "16:00", "16:40", "17:05", "18:45"
@@ -65,36 +63,45 @@ export default function KSRTCNextBusApp() {
     return (
         <div className="min-h-screen p-4 md:p-8 lg:p-12">
             <div className="max-w-6xl mx-auto space-y-8">
-                {/* Header Section */}
+                {/* Header Section - Refined for First Fold */}
                 <motion.header
                     initial={{ opacity: 0, y: -20 }}
                     animate={{ opacity: 1, y: 0 }}
-                    className="glass-card rounded-[2.5rem] p-8 md:p-12 flex flex-col md:flex-row justify-between items-start md:items-center gap-6"
+                    className="glass-card rounded-[2.5rem] p-8 md:p-12 flex flex-col md:flex-row justify-between items-center gap-8 text-center md:text-left"
                 >
-                    <div className="space-y-2">
-                        <div className="flex items-center gap-3">
+                    <div className="space-y-4 flex-1">
+                        <div className="flex items-center justify-center md:justify-start gap-3">
                             <span className="px-3 py-1 bg-amber-500 text-white text-[10px] font-bold uppercase tracking-widest rounded-full">Live</span>
-                            <p className="text-xs font-bold uppercase tracking-[0.2em] text-slate-400">KSRTC Timing Finder</p>
+                            <p className="text-xs font-bold uppercase tracking-[0.2em] text-slate-400">Next Departure</p>
                         </div>
-                        <h1 className="text-4xl md:text-6xl font-black tracking-tight text-slate-900">
-                            Your next bus <span className="text-amber-500">awaits.</span>
+                        <h1 className="text-5xl md:text-7xl font-black tracking-tight text-slate-900 leading-tight">
+                            {nextBus ? (
+                                <>
+                                    {formatTime(nextBus).split(' ')[0]}
+                                    <span className="text-amber-500 ml-2">{formatTime(nextBus).split(' ')[1]}</span>
+                                </>
+                            ) : (
+                                <span className="text-slate-400 italic text-4xl">No more buses</span>
+                            )}
                         </h1>
+                        <p className="text-xl md:text-2xl font-bold text-slate-500">
+                            {route.from} to {route.to}
+                        </p>
                     </div>
-                    <div className="glass-card-dark rounded-3xl px-6 py-4 flex items-center gap-4">
-                        <div className="relative flex h-3 w-3">
-                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                            <span className="relative inline-flex rounded-full h-3 w-3 bg-emerald-500"></span>
+
+                    {nextBus && (
+                        <div className="glass-card-dark rounded-[2.5rem] p-8 md:p-10 flex flex-col items-center justify-center min-w-[240px]">
+                            <div className="relative flex h-4 w-4 mb-4">
+                                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                                <span className="relative inline-flex rounded-full h-4 w-4 bg-emerald-500"></span>
+                            </div>
+                            <p className="text-slate-400 text-[10px] uppercase tracking-widest font-bold mb-1">Leaves in</p>
+                            <p className="text-4xl font-black text-white">{minutesAway(nextBus)}</p>
                         </div>
-                        <div className="text-right">
-                            <p className="text-[10px] uppercase tracking-widest text-slate-400 font-bold">Current Time</p>
-                            <p className="text-2xl font-mono font-bold text-white">
-                                {now.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit', hour12: true })}
-                            </p>
-                        </div>
-                    </div>
+                    )}
                 </motion.header>
 
-                <div className="grid gap-8 lg:grid-cols-[350px_1fr]">
+                <div className="grid gap-8 lg:grid-cols-[300px_1fr]">
                     {/* Sidebar - Route Selection */}
                     <motion.aside
                         initial={{ opacity: 0, x: -20 }}
@@ -121,9 +128,6 @@ export default function KSRTCNextBusApp() {
                                                 <span className={`transition-transform duration-500 ${active ? 'translate-x-1' : 'group-hover:translate-x-1'}`}>→</span>
                                                 {item.to}
                                             </div>
-                                            <p className={`text-xs mt-2 leading-relaxed ${active ? 'text-slate-400' : 'text-slate-400'}`}>
-                                                {item.standNote}
-                                            </p>
                                         </div>
                                         {active && (
                                             <motion.div
@@ -148,68 +152,16 @@ export default function KSRTCNextBusApp() {
                                 transition={{ duration: 0.4 }}
                                 className="space-y-8"
                             >
-                                {/* Highlight Card */}
-                                <div className="glass-card rounded-[3rem] p-8 md:p-12 overflow-hidden relative">
-                                    <div className="absolute top-0 right-0 w-64 h-64 bg-amber-500/5 rounded-full -mr-32 -mt-32 blur-3xl" />
-
-                                    <div className="relative z-10 grid md:grid-cols-2 gap-12 items-center">
-                                        <div className="space-y-6">
-                                            <div>
-                                                <p className="text-xs font-bold uppercase tracking-widest text-amber-600 mb-2">Next Departure</p>
-                                                <h2 className="text-3xl md:text-5xl font-black text-slate-900">{route.from} to {route.to}</h2>
-                                            </div>
-
-                                            <div className="flex items-baseline gap-4">
-                                                {nextBus ? (
-                                                    <>
-                                                        <span className="text-6xl md:text-8xl font-black tracking-tighter text-slate-900">
-                                                            {formatTime(nextBus).split(' ')[0]}
-                                                        </span>
-                                                        <span className="text-2xl font-bold text-slate-400 uppercase">
-                                                            {formatTime(nextBus).split(' ')[1]}
-                                                        </span>
-                                                    </>
-                                                ) : (
-                                                    <span className="text-3xl font-bold text-slate-400 italic">No more buses today</span>
-                                                )}
-                                            </div>
-
-                                            {nextBus && (
-                                                <div className="inline-flex items-center gap-3 px-6 py-3 bg-emerald-500/10 text-emerald-600 rounded-full font-bold text-sm">
-                                                    <span className="relative flex h-2 w-2">
-                                                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                                                        <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
-                                                    </span>
-                                                    Leaves in {minutesAway(nextBus)}
-                                                </div>
-                                            )}
-                                        </div>
-
-                                        <div className="glass-card-dark rounded-[2.5rem] p-8 space-y-6">
-                                            <p className="text-xs font-bold uppercase tracking-widest text-slate-500">Route Stats</p>
-                                            <div className="grid grid-cols-2 gap-8">
-                                                <div>
-                                                    <p className="text-slate-400 text-[10px] uppercase font-bold mb-1">Total Services</p>
-                                                    <p className="text-3xl font-black text-white">{route.times.length}</p>
-                                                </div>
-                                                <div>
-                                                    <p className="text-slate-400 text-[10px] uppercase font-bold mb-1">First Bus</p>
-                                                    <p className="text-xl font-bold text-white">{formatTime(route.times[0])}</p>
-                                                </div>
-                                                <div className="col-span-2">
-                                                    <p className="text-slate-400 text-[10px] uppercase font-bold mb-1">Last Service</p>
-                                                    <p className="text-xl font-bold text-white">{formatTime(route.times[route.times.length - 1])}</p>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-
                                 {/* Timings Grid */}
                                 <div className="space-y-6">
                                     <div className="flex items-center justify-between px-4">
                                         <h3 className="text-xl font-black text-slate-900 uppercase tracking-tight">Today's Schedule</h3>
-                                        <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">Scroll for more</p>
+                                        <div className="flex items-center gap-4">
+                                            <div className="text-right">
+                                                <p className="text-[10px] uppercase tracking-widest text-slate-400 font-bold">Total Services</p>
+                                                <p className="text-sm font-black text-slate-900">{route.times.length}</p>
+                                            </div>
+                                        </div>
                                     </div>
 
                                     <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
