@@ -1,4 +1,5 @@
 import React from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 
 export default function KSRTCNextBusApp() {
     const routeData = {
@@ -51,7 +52,6 @@ export default function KSRTCNextBusApp() {
     const currentMinutes = now.getHours() * 60 + now.getMinutes();
     const upcomingIndex = route.times.findIndex((time) => toMinutes(time) >= currentMinutes);
     const nextBus = upcomingIndex === -1 ? null : route.times[upcomingIndex];
-    const upcomingBuses = route.times.filter((time) => toMinutes(time) >= currentMinutes);
 
     const minutesAway = (time) => {
         const diff = toMinutes(time) - currentMinutes;
@@ -63,26 +63,46 @@ export default function KSRTCNextBusApp() {
     };
 
     return (
-        <div className="min-h-screen bg-slate-50 text-slate-900 p-4 md:p-8">
-            <div className="max-w-5xl mx-auto space-y-6">
-                <div className="rounded-3xl bg-white shadow-sm border p-6 md:p-8">
-                    <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
-                        <div>
-                            <p className="text-sm uppercase tracking-[0.18em] text-slate-500">KSRTC Timing Finder</p>
-                            <h1 className="text-3xl md:text-5xl font-semibold tracking-tight mt-2">Find the next bus fast</h1>
-                            <p className="text-slate-600 mt-3 max-w-2xl">
-                                A simple community-made timing viewer for Kerala KSRTC routes. Start with one route, then expand route by route.
+        <div className="min-h-screen p-4 md:p-8 lg:p-12">
+            <div className="max-w-6xl mx-auto space-y-8">
+                {/* Header Section */}
+                <motion.header
+                    initial={{ opacity: 0, y: -20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="glass-card rounded-[2.5rem] p-8 md:p-12 flex flex-col md:flex-row justify-between items-start md:items-center gap-6"
+                >
+                    <div className="space-y-2">
+                        <div className="flex items-center gap-3">
+                            <span className="px-3 py-1 bg-amber-500 text-white text-[10px] font-bold uppercase tracking-widest rounded-full">Live</span>
+                            <p className="text-xs font-bold uppercase tracking-[0.2em] text-slate-400">KSRTC Timing Finder</p>
+                        </div>
+                        <h1 className="text-4xl md:text-6xl font-black tracking-tight text-slate-900">
+                            Your next bus <span className="text-amber-500">awaits.</span>
+                        </h1>
+                    </div>
+                    <div className="glass-card-dark rounded-3xl px-6 py-4 flex items-center gap-4">
+                        <div className="relative flex h-3 w-3">
+                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                            <span className="relative inline-flex rounded-full h-3 w-3 bg-emerald-500"></span>
+                        </div>
+                        <div className="text-right">
+                            <p className="text-[10px] uppercase tracking-widest text-slate-400 font-bold">Current Time</p>
+                            <p className="text-2xl font-mono font-bold text-white">
+                                {now.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit', hour12: true })}
                             </p>
                         </div>
-                        <div className="rounded-2xl bg-slate-100 px-4 py-3 text-sm text-slate-700">
-                            Current time: <span className="font-semibold">{now.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}</span>
-                        </div>
                     </div>
-                </div>
+                </motion.header>
 
-                <div className="grid gap-6 md:grid-cols-[320px_1fr]">
-                    <div className="rounded-3xl bg-white shadow-sm border p-4">
-                        <p className="text-sm font-medium text-slate-500 mb-3">Choose a route</p>
+                <div className="grid gap-8 lg:grid-cols-[350px_1fr]">
+                    {/* Sidebar - Route Selection */}
+                    <motion.aside
+                        initial={{ opacity: 0, x: -20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ delay: 0.2 }}
+                        className="space-y-4"
+                    >
+                        <p className="text-xs font-bold uppercase tracking-widest text-slate-500 ml-2">Select Route</p>
                         <div className="space-y-3">
                             {Object.values(routeData).map((item) => {
                                 const active = item.id === selectedRouteId;
@@ -90,81 +110,157 @@ export default function KSRTCNextBusApp() {
                                     <button
                                         key={item.id}
                                         onClick={() => setSelectedRouteId(item.id)}
-                                        className={`w-full text-left rounded-2xl border p-4 transition ${active ? 'border-slate-900 bg-slate-900 text-white' : 'border-slate-200 bg-white hover:bg-slate-50'}`}
+                                        className={`w-full text-left rounded-[2rem] p-6 transition-all duration-500 group relative overflow-hidden ${active
+                                                ? 'transit-gradient text-white shadow-2xl scale-[1.02]'
+                                                : 'glass-card hover:bg-white/90 text-slate-600'
+                                            }`}
                                     >
-                                        <div className="text-base font-semibold">{item.from} → {item.to}</div>
-                                        <div className={`text-sm mt-1 ${active ? 'text-slate-300' : 'text-slate-500'}`}>{item.standNote}</div>
+                                        <div className="relative z-10">
+                                            <div className="text-xl font-bold flex items-center gap-2">
+                                                {item.from}
+                                                <span className={`transition-transform duration-500 ${active ? 'translate-x-1' : 'group-hover:translate-x-1'}`}>→</span>
+                                                {item.to}
+                                            </div>
+                                            <p className={`text-xs mt-2 leading-relaxed ${active ? 'text-slate-400' : 'text-slate-400'}`}>
+                                                {item.standNote}
+                                            </p>
+                                        </div>
+                                        {active && (
+                                            <motion.div
+                                                layoutId="active-pill"
+                                                className="absolute inset-0 bg-gradient-to-r from-amber-500/10 to-transparent opacity-50"
+                                            />
+                                        )}
                                     </button>
                                 );
                             })}
                         </div>
-                    </div>
+                    </motion.aside>
 
-                    <div className="space-y-6">
-                        <div className="rounded-3xl bg-white shadow-sm border p-6">
-                            <p className="text-sm uppercase tracking-[0.16em] text-slate-500">Selected route</p>
-                            <h2 className="text-2xl md:text-3xl font-semibold mt-2">{route.from} → {route.to}</h2>
-                            <p className="text-slate-600 mt-2">{route.standNote}</p>
+                    {/* Main Content */}
+                    <main className="space-y-8">
+                        <AnimatePresence mode="wait">
+                            <motion.div
+                                key={selectedRouteId}
+                                initial={{ opacity: 0, y: 20 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                exit={{ opacity: 0, y: -20 }}
+                                transition={{ duration: 0.4 }}
+                                className="space-y-8"
+                            >
+                                {/* Highlight Card */}
+                                <div className="glass-card rounded-[3rem] p-8 md:p-12 overflow-hidden relative">
+                                    <div className="absolute top-0 right-0 w-64 h-64 bg-amber-500/5 rounded-full -mr-32 -mt-32 blur-3xl" />
 
-                            <div className="mt-6 grid gap-4 md:grid-cols-2">
-                                <div className="rounded-2xl bg-slate-900 text-white p-5">
-                                    <p className="text-sm text-slate-300">Next bus</p>
-                                    {nextBus ? (
-                                        <>
-                                            <div className="text-4xl font-semibold mt-2">{formatTime(nextBus)}</div>
-                                            <div className="text-slate-300 mt-2">Leaves in {minutesAway(nextBus)}</div>
-                                        </>
-                                    ) : (
-                                        <>
-                                            <div className="text-3xl font-semibold mt-2">No more buses today</div>
-                                            <div className="text-slate-300 mt-2">Check tomorrow or verify with depot</div>
-                                        </>
-                                    )}
-                                </div>
+                                    <div className="relative z-10 grid md:grid-cols-2 gap-12 items-center">
+                                        <div className="space-y-6">
+                                            <div>
+                                                <p className="text-xs font-bold uppercase tracking-widest text-amber-600 mb-2">Next Departure</p>
+                                                <h2 className="text-3xl md:text-5xl font-black text-slate-900">{route.from} to {route.to}</h2>
+                                            </div>
 
-                                <div className="rounded-2xl bg-slate-100 p-5">
-                                    <p className="text-sm text-slate-500">Quick facts</p>
-                                    <div className="mt-3 space-y-2 text-sm text-slate-700">
-                                        <div>Total listed services: <span className="font-semibold">{route.times.length}</span></div>
-                                        <div>First bus: <span className="font-semibold">{formatTime(route.times[0])}</span></div>
-                                        <div>Last bus: <span className="font-semibold">{formatTime(route.times[route.times.length - 1])}</span></div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
+                                            <div className="flex items-baseline gap-4">
+                                                {nextBus ? (
+                                                    <>
+                                                        <span className="text-6xl md:text-8xl font-black tracking-tighter text-slate-900">
+                                                            {formatTime(nextBus).split(' ')[0]}
+                                                        </span>
+                                                        <span className="text-2xl font-bold text-slate-400 uppercase">
+                                                            {formatTime(nextBus).split(' ')[1]}
+                                                        </span>
+                                                    </>
+                                                ) : (
+                                                    <span className="text-3xl font-bold text-slate-400 italic">No more buses today</span>
+                                                )}
+                                            </div>
 
-                        <div className="rounded-3xl bg-white shadow-sm border p-6">
-                            <div className="flex items-center justify-between gap-3 flex-wrap">
-                                <div>
-                                    <p className="text-sm uppercase tracking-[0.16em] text-slate-500">Today's timings</p>
-                                    <h3 className="text-xl font-semibold mt-2">All buses on this route</h3>
-                                </div>
-                                <div className="text-sm text-slate-500">Tap a route on the left to switch direction</div>
-                            </div>
+                                            {nextBus && (
+                                                <div className="inline-flex items-center gap-3 px-6 py-3 bg-emerald-500/10 text-emerald-600 rounded-full font-bold text-sm">
+                                                    <span className="relative flex h-2 w-2">
+                                                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                                                        <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                                                    </span>
+                                                    Leaves in {minutesAway(nextBus)}
+                                                </div>
+                                            )}
+                                        </div>
 
-                            <div className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-                                {route.times.map((time) => {
-                                    const isPast = toMinutes(time) < currentMinutes;
-                                    const isNext = time === nextBus;
-                                    return (
-                                        <div
-                                            key={time}
-                                            className={`rounded-2xl border p-4 ${isNext ? 'border-slate-900 bg-slate-900 text-white' : isPast ? 'border-slate-200 bg-slate-100 text-slate-400' : 'border-slate-200 bg-white text-slate-900'}`}
-                                        >
-                                            <div className="text-lg font-semibold">{formatTime(time)}</div>
-                                            <div className={`text-sm mt-1 ${isNext ? 'text-slate-300' : isPast ? 'text-slate-400' : 'text-slate-500'}`}>
-                                                {isNext ? `Next • ${minutesAway(time)}` : isPast ? 'Departed' : `In ${minutesAway(time)}`}
+                                        <div className="glass-card-dark rounded-[2.5rem] p-8 space-y-6">
+                                            <p className="text-xs font-bold uppercase tracking-widest text-slate-500">Route Stats</p>
+                                            <div className="grid grid-cols-2 gap-8">
+                                                <div>
+                                                    <p className="text-slate-400 text-[10px] uppercase font-bold mb-1">Total Services</p>
+                                                    <p className="text-3xl font-black text-white">{route.times.length}</p>
+                                                </div>
+                                                <div>
+                                                    <p className="text-slate-400 text-[10px] uppercase font-bold mb-1">First Bus</p>
+                                                    <p className="text-xl font-bold text-white">{formatTime(route.times[0])}</p>
+                                                </div>
+                                                <div className="col-span-2">
+                                                    <p className="text-slate-400 text-[10px] uppercase font-bold mb-1">Last Service</p>
+                                                    <p className="text-xl font-bold text-white">{formatTime(route.times[route.times.length - 1])}</p>
+                                                </div>
                                             </div>
                                         </div>
-                                    );
-                                })}
-                            </div>
-                        </div>
+                                    </div>
+                                </div>
 
-                        <div className="rounded-3xl border border-amber-200 bg-amber-50 p-5 text-sm text-amber-900">
-                            This is the right MVP: one route, clear next-bus logic, simple manual data. After this, the next step is moving timings into a JSON file or Google Sheet so non-designers can update it without touching code.
-                        </div>
-                    </div>
+                                {/* Timings Grid */}
+                                <div className="space-y-6">
+                                    <div className="flex items-center justify-between px-4">
+                                        <h3 className="text-xl font-black text-slate-900 uppercase tracking-tight">Today's Schedule</h3>
+                                        <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">Scroll for more</p>
+                                    </div>
+
+                                    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                                        {route.times.map((time, idx) => {
+                                            const isPast = toMinutes(time) < currentMinutes;
+                                            const isNext = time === nextBus;
+
+                                            return (
+                                                <motion.div
+                                                    key={time}
+                                                    initial={{ opacity: 0, scale: 0.9 }}
+                                                    animate={{ opacity: 1, scale: 1 }}
+                                                    transition={{ delay: idx * 0.05 }}
+                                                    className={`rounded-[2rem] p-6 transition-all duration-500 ${isNext
+                                                            ? 'transit-gradient text-white shadow-2xl ring-4 ring-amber-500/20'
+                                                            : isPast
+                                                                ? 'bg-slate-200/50 text-slate-400 grayscale'
+                                                                : 'glass-card hover:scale-[1.02] text-slate-900'
+                                                        }`}
+                                                >
+                                                    <div className="flex justify-between items-start mb-4">
+                                                        <span className="text-2xl font-black">{formatTime(time)}</span>
+                                                        {isNext && (
+                                                            <span className="px-3 py-1 bg-amber-500 text-white text-[8px] font-black uppercase rounded-full">Next</span>
+                                                        )}
+                                                    </div>
+                                                    <p className={`text-xs font-bold uppercase tracking-widest ${isNext ? 'text-slate-400' : 'text-slate-400'}`}>
+                                                        {isPast ? 'Departed' : isNext ? `In ${minutesAway(time)}` : `In ${minutesAway(time)}`}
+                                                    </p>
+                                                </motion.div>
+                                            );
+                                        })}
+                                    </div>
+                                </div>
+                            </motion.div>
+                        </AnimatePresence>
+
+                        {/* Footer Note */}
+                        <motion.div
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            transition={{ delay: 0.8 }}
+                            className="glass-card rounded-3xl p-6 text-center"
+                        >
+                            <p className="text-sm text-slate-500 font-medium">
+                                Built for the community. Timings are subject to change by KSRTC.
+                                <br className="hidden md:block" />
+                                Always verify with the local depot for critical travel.
+                            </p>
+                        </motion.div>
+                    </main>
                 </div>
             </div>
         </div>
